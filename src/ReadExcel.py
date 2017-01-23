@@ -27,31 +27,70 @@ class ReadExcel:
 		workbook    = open_workbook(excelFilename)
 		sheet_names = workbook.sheet_names()
 		sheet       = workbook.sheet_by_index(0)
+		prevLine    = None
 		header      = None
 		self.files.append(excelFilename)
 
+		listData = self.readData(sheet)
+
+		for line in listData:
+			print line
+
+
+#		for row in range(sheet.nrows):
+#			values = []
+#			for col in range(sheet.ncols):
+#				cellValue   = sheet.cell(row,col).value
+#				cleanedText = self.cleanText(cellValue)
+#				values.append(cleanedText)
+#
+#			if values[0].lower() == 'name':
+#				offence = prevLine
+#				header  = self.getHeader(values)
+#			elif values[1] != '':
+#				jsonValues = self.asJSON(header, values, offence)
+#				jsonList.append(jsonValues)
+#
+#			prevLine = values[0]
+#		return jsonList
+
+	def readData(self, sheet):
+		offense     = None
+		values      = []
+		prevValues  = None
+		dataList    = []
+
 		for row in range(sheet.nrows):
+			prevValues = values
 			values = []
 			for col in range(sheet.ncols):
 				cellValue   = sheet.cell(row,col).value
 				cleanedText = self.cleanText(cellValue)
+				if cleanedText.lower() == 'name':
+					offense = prevValues[0]
 				values.append(cleanedText)
 
-			if values[0].lower() == 'name':
-				header = self.getHeader(values)
-			elif values[1] != '':
-				jsonValues = self.asJSON(header, values)
-				jsonList.append(jsonValues)
-		return jsonList
+			if values[0].lower() == 'name' and values[1].lower == 'address':
+				header = value
+			else:
+				if values[0] != 'offense' and values[0].lower() != 'name':
+					values.append(offense)
+					dataList.append(values)
+				
+		return dataList
 
-	def asJSON(self, header, valueList):
+
+
+	def asJSON(self, header, offence, valueList):
 		jsonDict = collections.OrderedDict()
 		errors   = 0
 
 		if header is not None:
-			nameIndex   = header.index('name')
-			addrIndex   = header.index('address')
-			occIndex    = header.index('occupation')
+			nameIndex              = header.index('name')
+			addrIndex              = header.index('address')
+			fineIndex              = header.index('fine amount')
+			sentenceIndex          = header.index('sentence imposed')
+			occIndex               = header.index('occupation')
 			jsonDict['name']       = valueList[nameIndex]
 			jsonDict['occupation'] = valueList[occIndex]
 
@@ -60,17 +99,22 @@ class ReadExcel:
 				jsonDict['address']    = valueList[addrIndex] + ' ' + valueList[countyIndex]
 			else:
 				jsonDict['address']    = valueList[addrIndex]
+
+			if 'fine' in header:
+				fineIndex = header.index
 		else:
 			jsonDict['name']       = valueList[0]
 			jsonDict['address']    = valueList[1]
 			jsonDict['occupation'] = valueList[2]
+			jsonDict['fine']       = valueList[3]
+			jsonDict['sentence']   = valueList[4]
 			
 		jsonStr = json.dumps(jsonDict, ensure_ascii=True)
 		return jsonStr
 
 	def getHeader(self, valueList):
-		outputList = [x.lower() for x in valueList]
-		return outputList
+		resultList = [x.lower() for x in valueList]
+		return resultList
 
 	def printDebtors(self):
 		for debtor in self.debtorList:
