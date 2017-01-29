@@ -1,8 +1,12 @@
 #!/bin/bash
 BIN="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DIR="$(dirname "$BIN")"
-LOGFILE=$DIR/log/defaulters_list.log
+LOGFILE=$DIR/log/data-downloads.log
 
+# Now start the download of the files
+TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+echo "$TIMESTAMP - Downloading the Defaulters Data" >> $LOGFILE
+STARTTIME=`date +%s`			
 wget -q http://www.payeanytime.ie/en/press/defaulters/defaulters-list1-september2016.xls -O $DIR/data/201609_1.xls
 wget -q http://www.payeanytime.ie/en/press/defaulters/defaulters-list2-september2016.xls -O $DIR/data/201609_2.xls
 wget -q http://www.payeanytime.ie/en/press/defaulters/defaulters-list1-june2016.xls -O $DIR/data/201606_1.xls
@@ -33,3 +37,7 @@ wget -q http://www.payeanytime.ie/en/press/defaulters/archive/defaulters-list1-j
 wget -q http://www.payeanytime.ie/en/press/defaulters/archive/defaulters-list2-june2013.xls -O $DIR/data/201306_2.xls
 wget -q http://www.payeanytime.ie/en/press/defaulters/archive/defaulters-list1-march2013.xls -O $DIR/data/201303_1.xls
 wget -q http://www.payeanytime.ie/en/press/defaulters/archive/defaulters-list2-march2013.xls -O $DIR/data/201303_2.xls
+FINISHTIME=`date +%s`
+RUNTIME=$((end-start))
+TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+echo "$TIMESTAMP - Files downloaded in $RUNTIME seconds" >> $LOGFILE

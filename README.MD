@@ -17,7 +17,7 @@ the data and place it in the data sub-folder in the project.
         . venv/bin/activate
 
 	# Install the python libraries needed
-        pip install Flask openpyxl unidecode regex requests
+        pip install Flask openpyxl unidecode regex requests xlrd
 
 	# Download the data
 	./bin/download-data.sh
