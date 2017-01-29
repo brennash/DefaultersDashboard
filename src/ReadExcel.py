@@ -7,12 +7,10 @@ import datetime
 import time
 import re
 import datetime
-import collections
-import openpyxl
 import unicodedata
+import collections
 from Debtor import Debtor
 from sets import Set
-from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection, Font
 from xlrd import open_workbook
 from optparse import OptionParser
 
@@ -30,56 +28,82 @@ class ReadExcel:
 		prevLine    = None
 		header      = None
 		self.files.append(excelFilename)
+		jsonList    = self.readDataAsJson(sheet)
+	
+		for element in jsonList:
+			print element
 
-		listData = self.readData(sheet)
+	def readDataAsJson(self, sheet):
+		offence     = None
+		header      = None
+		jsonList    = []
 
-		for line in listData:
-			print line
+		for rowIndex in range(sheet.nrows):
+			if self.isHeader(sheet.row(rowIndex)):
+				header = self.getHeader(sheet.row(rowIndex))
+			elif self.isOffence(sheet.row(rowIndex)):
+				offence = self.getOffence(sheet.row(rowIndex))				
+			else:
+				details  = [x.value for x in sheet.row(rowIndex)]
+				jsonDict = collections.OrderedDict()
+				for index, headerValue in enumerate(header):
+					jsonDict[headerValue] = details[index]
+				jsonDict['Offence'] = offence
+				jsonList.append(json.dumps(jsonDict))
+				
+		return jsonList
 
+	def isHeader(self, row):
+		element1 = self.cleanText(row[0].value)
+		element2 = self.cleanText(row[1].value)
+		if element1.lower() == 'name' and element2.lower() == 'address':
+			return True
+		return False
 
-#		for row in range(sheet.nrows):
-#			values = []
+	def getHeader(self, valueList):
+		resultList = [x.value.lower() for x in valueList]
+		# Clean up certain header fields
+		for index, value in enumerate(resultList):
+			if 'fine amount' in value:
+				resultList[index] = 'fine amount'
+		return resultList
+
+	def isOffence(self, row):
+		if row[0].value.lower() != 'name' and len(row[1].value) == 0:
+			return True
+		return False
+
+	def getOffence(self, row):
+		return self.cleanText(row[0].value)
+
 #			for col in range(sheet.ncols):
 #				cellValue   = sheet.cell(row,col).value
 #				cleanedText = self.cleanText(cellValue)
+#				if cleanedText.lower() == 'name':
+#					offense = prevValues[0]
+#					header  = sheet.row(row)
 #				values.append(cleanedText)
 #
-#			if values[0].lower() == 'name':
-#				offence = prevLine
-#				header  = self.getHeader(values)
-#			elif values[1] != '':
-#				jsonValues = self.asJSON(header, values, offence)
-#				jsonList.append(jsonValues)
+#			if values[0].lower() == 'name' and values[1].lower == 'address':
+#				header = row
+#			else:
+#				if values[0] != 'offense' and values[0].lower() != 'name' and len(values[1]) > 1:
+#					values.append(offense)
+#					
+#					print values, header
+#					jsonDict = {}
 #
-#			prevLine = values[0]
+#					if header is not None:
+#						print values, header
+#
+#					#	for index, element in enumerate(header):
+#					#		if len(element) > 0:
+#					#			jsonDict[element] = values[index]
+#					#	jsonList.append(json.dumps(jsonDict))
+#				
 #		return jsonList
-
-	def readData(self, sheet):
-		offense     = None
-		values      = []
-		prevValues  = None
-		dataList    = []
-
-		for row in range(sheet.nrows):
-			prevValues = values
-			values = []
-			for col in range(sheet.ncols):
-				cellValue   = sheet.cell(row,col).value
-				cleanedText = self.cleanText(cellValue)
-				if cleanedText.lower() == 'name':
-					offense = prevValues[0]
-				values.append(cleanedText)
-
-			if values[0].lower() == 'name' and values[1].lower == 'address':
-				header = value
-			else:
-				if values[0] != 'offense' and values[0].lower() != 'name':
-					values.append(offense)
-					dataList.append(values)
-				
-		return dataList
-
-
+#
+#
 
 	def asJSON(self, header, offence, valueList):
 		jsonDict = collections.OrderedDict()
@@ -112,18 +136,14 @@ class ReadExcel:
 		jsonStr = json.dumps(jsonDict, ensure_ascii=True)
 		return jsonStr
 
-	def getHeader(self, valueList):
-		resultList = [x.lower() for x in valueList]
-		return resultList
-
 	def printDebtors(self):
 		for debtor in self.debtorList:
 			debtor.printDetails()
 
-	def isHeader(self, valueList):
-		if len(valueList) > 4 and valueList[0].lower() != 'name' and valueList[1] != '':
-			return True
-		return False
+#	def isHeader(self, valueList):
+#		if len(valueList) > 4 and valueList[0].lower() != 'name' and valueList[1] != '':
+#			return True
+#		return False
 
 	def cleanText(self, inputText):
 		if inputText is None:
