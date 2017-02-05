@@ -9,21 +9,24 @@ the data and place it in the data sub-folder in the project.
 
 
 ```
-	# Clone the repository from GitHub
-	cd DefaultersDashboard
+        # Clone the repository from GitHub
+        cd DefaultersDashboard
 
-	# Setup your virtual environment
+        # Setup your virtual environment
         virtualenv venv
         . venv/bin/activate
 
-	# Install the python libraries needed
-        pip install Flask openpyxl unidecode regex requests xlrd
+        # Install the python libraries needed
+        pip install Flask openpyxl unidecode regex requests
 
-	# Download the data
-	./bin/download-data.sh
+        # The PDF reader
+        brew install poppler
 
-	# Start the dashboard running on port 1798
-	./bin/start-dashboard.sh
+        # Download the data
+        ./bin/download-data.sh
+
+        # Start the dashboard running on port 1798
+        ./bin/start-dashboard.sh
 ```
 
 If you've already downloaded the data, then you only need to run, 
