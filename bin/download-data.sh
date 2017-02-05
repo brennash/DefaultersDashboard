@@ -1,20 +1,29 @@
 #!/bin/bash
 BIN="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DIR="$(dirname "$BIN")"
-LOGFILE=$DIR/log/data-downloads.log
+LOGFILE=$DIR/log/downloads.log
 
 # Now start the download of the files
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 echo "$TIMESTAMP - Downloading the Defaulters Data" >> $LOGFILE
+echo "$TIMESTAMP - Downloading the Defaulters Data"
 STARTTIME=`date +%s`
 
 downloadPDF () {
 	wget -q $1 -O $DIR/data/$2
 	pdftotext $DIR/data/$2	
 	TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-	PDF_SIZE=`ls -lh $2`
+	PDF_SIZE=`ls -lh $DIR/data/$2 | awk '{print $5}'`
 	echo "$TIMESTAMP - Downloading $1 and converting to $2, size is $PDF_SIZE" >> $LOGFILE
 	rm -f $DIR/data/*.pdf
+}
+
+checkDataSizes() {
+	for filename in $DIR/data/*.txt; do
+		TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+		FILE_SIZE=`wc $filename | awk '{print $1}'`
+		echo "$TIMESTAMP - converted $filename with $FILE_SIZE lines." >> $LOGFILE
+	done
 }
 
 downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list1-september2016.pdf Sept2016_1.pdf
@@ -93,4 +102,6 @@ downloadPDF http://www.payeanytime.ie/en/press/defaulters/archive/def2-108.pdf M
 FINISHTIME=`date +%s`
 RUNTIME=$((end-start))
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+checkDataSizes
+echo "$TIMESTAMP - Files downloaded in $RUNTIME seconds"
 echo "$TIMESTAMP - Files downloaded in $RUNTIME seconds" >> $LOGFILE
