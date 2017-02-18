@@ -9,7 +9,14 @@ the data and place it in the data sub-folder in the project.
 
 
 ```
+	# Install the basics first
+	sudo apt-get update
+	sudo apt-get install git python-minimal virtualenv ghostscript tesseract-ocr poppler-utils
+`
         # Clone the repository from GitHub
+	git clone git@github.com:brennash/DefaultersDashboard.git
+
+	# Go into the repository
         cd DefaultersDashboard
 
         # Setup your virtual environment

@@ -9,32 +9,50 @@ echo "$TIMESTAMP - Downloading the Defaulters Data" >> $LOGFILE
 echo "$TIMESTAMP - Downloading the Defaulters Data"
 STARTTIME=`date +%s`
 
-# Count of the pages scanned
-SCAN_PAGE=1
-
-downloadPDF () {	
-	wget -q $1 -O $DIR/data/$2
-	mv $DIR/data/*.pdf $DIR/data/pdfs/
+downloadPDF () {
+	TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+	echo "$TIMESTAMP - Downloading $1 as $2.pdf" >> $LOGFILE
+	echo "$TIMESTAMP - Downloading $2.pdf and start processing"
+	wget -q $1 -O $DIR/data/pdfs/$2.pdf
 
 	# gs -dNOPAUSE -dBATCH -sDEVICE=tiffg4 -sOutputFile=$DIR/tiffs/scan_%d.tif $DIR/data/pdfs/$2
 	# gs -o scan-%03d.tif -sDEVICE=tiff32nc -r300x300 test.pdf
-	# gs -dNOPAUSE -dBATCH -o scan-%03d.tif -sDEVICE=tiff32nc -r300x300 test.pdf
 
-	for filename in $DIR/tiffs/*.tif; do
-	        tesseract $filename $DIR/data/txts/scan_$SCAN_PAGE
+	TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+	echo "$TIMESTAMP - Converting $2.pdf to TIFF image files" >> $LOGFILE
+	gs -dNOPAUSE -dBATCH -o $DIR/data/tiffs/$2-%03d.tif -sDEVICE=tiff32nc -r300x300 $DIR/data/pdfs/$2.pdf > /dev/null 2>&1
+
+	# Count of the pages scanned
+	SCAN_PAGE=1
+
+	# Loop to iterate over the scans and do OCR on each.
+	for filename in $DIR/data/tiffs/*.tif; do
 		TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-		echo "$TIMESTAMP - Finished processing $2, page $SCAN_PAGE"
+		echo "$TIMESTAMP - Converting $filename to $2_$SCAN_PAGE" >> $LOGFILE
+	        tesseract $filename $DIR/data/txts/$2_$SCAN_PAGE > /dev/null 2>&1
+		TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+		echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE" >> $LOGFILE
+		echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE"
 		((SCAN_PAGE++))
 	done
 
+	# Now concat the output text files
+	cat $DIR/data/txts/*.txt >> $DIR/data/$2_v1.txt
+
+	# Convert the PDF using pdftotext now
+	pdftotext $DIR/data/pdfs/$2.pdf >> $DIR/data/$2_v2.txt
+
 	rm $DIR/data/pdfs/*.pdf
 	rm $DIR/data/tiffs/*.tif
+	rm $DIR/data/txts/*.txt
+
 	TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-	echo "$TIMESTAMP - Cleaning up TIFFs and PDFs for $2"
+	echo "$TIMESTAMP - Cleaning up TIFFs and PDFs for $2" >> $LOGFILE
+	echo "$TIMESTAMP - Cleaning up TIFFs, TXTs and PDFs for $2, output is in data/$2.txt"
 }
 
-downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list1-september2016.pdf Sept2016_1.pdf
-downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list2-september2016.pdf Sept2016_2.pdf
+downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list1-september2016.pdf Sept2016_1
+downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list2-september2016.pdf Sept2016_2
 #downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list1-june2016.pdf June2016_1.pdf
 #downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list2-june2016.pdf June2016_2.pdf
 #downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list1-march2016.pdf March2016_1.pdf
