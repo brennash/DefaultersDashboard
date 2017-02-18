@@ -3,6 +3,9 @@ BIN="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DIR="$(dirname "$BIN")"
 LOGFILE=$DIR/log/downloads.log
 
+# Use OCR as well as PDFTOTEXT
+source $DIR/config/download.cfg
+
 # Now start the download of the files
 TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 echo "$TIMESTAMP - Downloading the Defaulters Data" >> $LOGFILE
@@ -15,36 +18,42 @@ downloadPDF () {
 	echo "$TIMESTAMP - Downloading $2.pdf and start processing"
 	wget -q $1 -O $DIR/data/pdfs/$2.pdf
 
-	# gs -dNOPAUSE -dBATCH -sDEVICE=tiffg4 -sOutputFile=$DIR/tiffs/scan_%d.tif $DIR/data/pdfs/$2
-	# gs -o scan-%03d.tif -sDEVICE=tiff32nc -r300x300 test.pdf
-
-	TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-	echo "$TIMESTAMP - Converting $2.pdf to TIFF image files" >> $LOGFILE
-	gs -dNOPAUSE -dBATCH -o $DIR/data/tiffs/$2-%03d.tif -sDEVICE=tiff32nc -r300x300 $DIR/data/pdfs/$2.pdf > /dev/null 2>&1
-
-	# Count of the pages scanned
-	SCAN_PAGE=1
-
-	# Loop to iterate over the scans and do OCR on each.
-	for filename in $DIR/data/tiffs/*.tif; do
+	# Convert the PDF using pdftotext
+	if [ "$use_pdf_to_text" = true ] ; then
 		TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-		echo "$TIMESTAMP - Converting $filename to $2_$SCAN_PAGE" >> $LOGFILE
-	        tesseract $filename $DIR/data/txts/$2_$SCAN_PAGE > /dev/null 2>&1
+		echo "$TIMESTAMP - Converting $2.pdf to $2_pdf.txt" >> $LOGFILE
+		pdftotext -q -layout $DIR/data/pdfs/$2.pdf $DIR/data/$2_pdf.txt
+	fi
+
+	# Convert the PDF using OCR/Tesseract
+	if [ "$use_pdf_ocr" = true ] ; then
 		TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-		echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE" >> $LOGFILE
-		echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE"
-		((SCAN_PAGE++))
-	done
+		echo "$TIMESTAMP - Converting $2.pdf to TIFF image files" >> $LOGFILE
+		gs -dNOPAUSE -dBATCH -o $DIR/data/tiffs/$2-%03d.tif -sDEVICE=tiff32nc -r300x300 $DIR/data/pdfs/$2.pdf > /dev/null 2>&1
 
-	# Now concat the output text files
-	cat $DIR/data/txts/*.txt >> $DIR/data/$2_v1.txt
+		# Count of the pages scanned
+		SCAN_PAGE=1
 
-	# Convert the PDF using pdftotext now
-	pdftotext $DIR/data/pdfs/$2.pdf >> $DIR/data/$2_v2.txt
+		# Loop to iterate over the scans and do OCR on each.
+		for filename in $DIR/data/tiffs/*.tif; do
+			TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+			echo "$TIMESTAMP - Converting $filename to $2_$SCAN_PAGE" >> $LOGFILE
+		        tesseract $filename $DIR/data/txts/$2_$SCAN_PAGE $DIR/config/tesseract.cfg > /dev/null 2>&1
+			TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+			echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE" >> $LOGFILE
+			echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE"
+			((SCAN_PAGE++))
+		done
 
+		# Now concat the output text files
+		cat $DIR/data/txts/*.txt >> $DIR/data/$2_ocr.txt
+
+		rm $DIR/data/tiffs/*.tif
+		rm $DIR/data/txts/*.txt
+	fi
+
+	# Clean up the downloaded pdfs
 	rm $DIR/data/pdfs/*.pdf
-	rm $DIR/data/tiffs/*.tif
-	rm $DIR/data/txts/*.txt
 
 	TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 	echo "$TIMESTAMP - Cleaning up TIFFs and PDFs for $2" >> $LOGFILE
