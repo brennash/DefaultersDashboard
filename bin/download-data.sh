@@ -29,16 +29,27 @@ downloadPDF () {
 	if [ "$use_pdf_ocr" = true ] ; then
 		TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 		echo "$TIMESTAMP - Converting $2.pdf to TIFF image files" >> $LOGFILE
-		gs -dNOPAUSE -dBATCH -o $DIR/data/tiffs/$2-%03d.tif -sDEVICE=tiff32nc -r300x300 $DIR/data/pdfs/$2.pdf > /dev/null 2>&1
+		convert -monochrome -density 300 $DIR/data/pdfs/$2.pdf -resize 50% $DIR/data/pngs/images_%d.png
+		# gs -dNOPAUSE -g3000x6000 -dBATCH -o $DIR/data/tiffs/$2-%03d.tif -sDEVICE=tiff32nc -r300x300 $DIR/data/pdfs/$2.pdf > /dev/null 2>&1
 
 		# Count of the pages scanned
 		SCAN_PAGE=1
 
 		# Loop to iterate over the scans and do OCR on each.
-		for filename in $DIR/data/tiffs/*.tif; do
+		for filename in $DIR/data/pngs/*.png; do
 			TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 			echo "$TIMESTAMP - Converting $filename to $2_$SCAN_PAGE" >> $LOGFILE
-			tesseract -l eng -c preserve_interword_spaces=1 $filename $DIR/data/txts/$2_$SCAN_PAGE /dev/null 2>&1
+
+			convert -crop 340x1240+0 filename $DIR/data/page_$SCAN_PAGE_names.png
+			convert -crop 415x1240+340 filename $DIR/data/page_$SCAN_PAGE_addresses.png
+			convert -crop 345x1240+755 filename $DIR/data/page_$SCAN_PAGE_occupations.png
+			convert -crop 100x1240+1100 filename $DIR/data/page_$SCAN_PAGE_fines.png
+
+			tesseract -l eng -c preserve_interword_spaces=1 $page_$SCAN_PAGE_names.png $DIR/data/txts/$2_$SCAN_PAGE_names /dev/null 2>&1
+			tesseract -l eng -c preserve_interword_spaces=1 $page_$SCAN_PAGE_addresses.png $DIR/data/txts/$2_$SCAN_PAGE_addresses /dev/null 2>&1
+			tesseract -l eng -c preserve_interword_spaces=1 $page_$SCAN_PAGE_occupations.png $DIR/data/txts/$2_$SCAN_PAGE_occupations /dev/null 2>&1
+			tesseract -l eng -c preserve_interword_spaces=1 $page_$SCAN_PAGE_fines.png $DIR/data/txts/$2_$SCAN_PAGE_fines /dev/null 2>&1
+
 			TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 			echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE" >> $LOGFILE
 			echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE"
@@ -46,10 +57,11 @@ downloadPDF () {
 		done
 
 		# Now concat the output text files
-		cat $DIR/data/txts/*.txt >> $DIR/data/$2_ocr.txt
+		# cat $DIR/data/txts/*.txt >> $DIR/data/$2_ocr.txt
 
-		rm $DIR/data/tiffs/*.tif
-		rm $DIR/data/txts/*.txt
+		rm $DIR/data/pngs/*.png
+		rm $DIR/data/*.png
+		# rm $DIR/data/txts/*.txt
 	fi
 
 	# Clean up the downloaded pdfs
@@ -61,7 +73,7 @@ downloadPDF () {
 }
 
 downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list1-september2016.pdf Sept2016_1
-downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list2-september2016.pdf Sept2016_2
+#downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list2-september2016.pdf Sept2016_2
 #downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list1-june2016.pdf June2016_1.pdf
 #downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list2-june2016.pdf June2016_2.pdf
 #downloadPDF http://www.revenue.ie/en/press/defaulters/defaulters-list1-march2016.pdf March2016_1.pdf
