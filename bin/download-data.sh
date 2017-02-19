@@ -38,7 +38,7 @@ downloadPDF () {
 		for filename in $DIR/data/tiffs/*.tif; do
 			TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 			echo "$TIMESTAMP - Converting $filename to $2_$SCAN_PAGE" >> $LOGFILE
-		        tesseract $filename $DIR/data/txts/$2_$SCAN_PAGE $DIR/config/tesseract.cfg > /dev/null 2>&1
+			tesseract -l eng -c preserve_interword_spaces=1 $filename $DIR/data/txts/$2_$SCAN_PAGE /dev/null 2>&1
 			TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 			echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE" >> $LOGFILE
 			echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE"
