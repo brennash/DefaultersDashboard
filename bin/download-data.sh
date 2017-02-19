@@ -12,6 +12,8 @@ echo "$TIMESTAMP - Downloading the Defaulters Data" >> $LOGFILE
 echo "$TIMESTAMP - Downloading the Defaulters Data"
 STARTTIME=`date +%s`
 
+
+
 downloadPDF () {
 	TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 	echo "$TIMESTAMP - Downloading $1 as $2.pdf" >> $LOGFILE
@@ -28,36 +30,38 @@ downloadPDF () {
 	# Convert the PDF using OCR/Tesseract
 	if [ "$use_pdf_ocr" = true ] ; then
 		TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-		echo "$TIMESTAMP - Converting $2.pdf to PNG image files" >> $LOGFILE
-		convert -monochrome -density 300 $DIR/data/pdfs/$2.pdf -resize 50% $DIR/data/pngs/images_%d.png
-		# gs -dNOPAUSE -g3000x6000 -dBATCH -o $DIR/data/tiffs/$2-%03d.tif -sDEVICE=tiff32nc -r300x300 $DIR/data/pdfs/$2.pdf > /dev/null 2>&1
-
-		# Count of the pages scanned
-		PAGENUM=1
+		echo "$TIMESTAMP - Converting $2.pdf to TIFF image files" >> $LOGFILE
+		convert -density 300 $DIR/data/pdfs/$2.pdf -depth 8 -strip -background white -alpha off $DIR/data/imgs/images_%d.tif
+		# convert -density 300 $DIR/data/pdfs/$2.pdf -resize 50% $DIR/data/imgs/images_%d.tif
 
 		# Loop to iterate over the scans and do OCR on each.
-		for filename in $DIR/data/pngs/*.png; do
+		PAGENUM=1
+		for filename in $DIR/data/imgs/images_*.tif; do
 			TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-			echo $PAGENUM
 			echo "$TIMESTAMP - Processing image file $filename" >> $LOGFILE
+			echo "$TIMESTAMP - Creating names image file names_$PAGENUM.tif" >> $LOGFILE
+			convert -crop 680x2480+0 $filename $DIR/data/names_$PAGENUM.tif
 
-			echo "$TIMESTAMP - Creating names image file names_$PAGENUM.png" >> $LOGFILE
-			convert -crop 340x1240+0 $filename $DIR/data/names_$PAGENUM.png
+			echo "$TIMESTAMP - Creating addresses image file addresses_$PAGENUM.tif" >> $LOGFILE
+			convert -crop 830x2480+680 $filename $DIR/data/addresses_$PAGENUM.tif
 
-#			echo "$TIMESTAMP - Creating addresses image file addresses_$PAGENUM.png" >> $LOGFILE
-#			convert -crop 415x1240+340 $filename $DIR/data/addresses_$PAGENUM.png
-#
-#			echo "$TIMESTAMP - Creating occupations image file page_$SCAN_PAGE_occupations.png" >> $LOGFILE
-#			convert -crop 345x1240+755 $filename $DIR/data/page_$SCAN_PAGE_occupations.png
-#
-#			echo "$TIMESTAMP - Creating fines image file page_$SCAN_PAGE_fines.png" >> $LOGFILE
-#			convert -crop 100x1240+1100 $filename $DIR/data/page_$SCAN_PAGE_fines.png
+			echo "$TIMESTAMP - Creating occupations image file occupations_$PAGENUM.tif" >> $LOGFILE
+			convert -crop 690x2480+1510 $filename $DIR/data/occupations_$PAGENUM.tif
+
+			echo "$TIMESTAMP - Creating fines image file fines_$PAGENUM.tif" >> $LOGFILE
+			convert -crop 20x2480+2200 $filename $DIR/data/fines_$PAGENUM.tif
 
 			echo "$TIMESTAMP - Converting these image files to text at $2_names_$PAGENUM" >> $LOGFILE
-			tesseract -l eng -c preserve_interword_spaces=1 $DIR/data/names_$PAGENUM.png $DIR/data/txts/$2_names_$PAGENUM /dev/null 2>&1
-#			tesseract -l eng -c preserve_interword_spaces=1 $DIR/data/page_$SCAN_PAGE_addresses.png $DIR/data/txts/$2_$SCAN_PAGE_addresses /dev/null 2>&1
-#			tesseract -l eng -c preserve_interword_spaces=1 $DIR/data/page_$SCAN_PAGE_occupations.png $DIR/data/txts/$2_$SCAN_PAGE_occupations /dev/null 2>&1
-#			tesseract -l eng -c preserve_interword_spaces=1 $DIR/data/page_$SCAN_PAGE_fines.png $DIR/data/txts/$2_$SCAN_PAGE_fines /dev/null 2>&1
+			tesseract -l eng -c presenve_interword_spaces=1 $DIR/data/names_$PAGENUM.tif $DIR/data/txts/$2_names_$PAGENUM
+
+			echo "$TIMESTAMP - Converting these image files to text at $2_addresses_$PAGENUM" >> $LOGFILE
+			tesseract -l eng -c preserve_interword_spaces=1 $DIR/data/addresses_$PAGENUM.tif $DIR/data/txts/$2_addresses_$PAGENUM
+
+			echo "$TIMESTAMP - Converting these image files to text at $2_occupations_$PAGENUM" >> $LOGFILE
+			tesseract -l eng -c preserve_interword_spaces=1 $DIR/data/occupations_$PAGENUM.tif $DIR/data/txts/$2_occupations_$PAGENUM
+
+			echo "$TIMESTAMP - Converting these image files to text at $2_fines_$PAGENUM" >> $LOGFILE
+			tesseract -l eng -c preserve_interword_spaces=1 $DIR/data/fines_$PAGENUM.tif $DIR/data/txts/$2_fines_$PAGENUM
 
 			TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
 			echo "$TIMESTAMP - Finished processing $2.pdf" >> $LOGFILE
