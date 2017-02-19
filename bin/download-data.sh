@@ -69,11 +69,9 @@ downloadPDF () {
 			((PAGENUM++))
 		done
 
-		# Now concat the output text files
-		# cat $DIR/data/txts/*.txt >> $DIR/data/$2_ocr.txt
-
-		#rm $DIR/data/pngs/*.png
-		#rm $DIR/data/*.png
+		# Remove the TIF images
+		rm $DIR/data/imgs/*.tif
+		rm $DIR/data/*.tif
 		# rm $DIR/data/txts/*.txt
 	fi
 
