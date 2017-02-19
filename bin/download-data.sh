@@ -28,39 +28,48 @@ downloadPDF () {
 	# Convert the PDF using OCR/Tesseract
 	if [ "$use_pdf_ocr" = true ] ; then
 		TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-		echo "$TIMESTAMP - Converting $2.pdf to TIFF image files" >> $LOGFILE
+		echo "$TIMESTAMP - Converting $2.pdf to PNG image files" >> $LOGFILE
 		convert -monochrome -density 300 $DIR/data/pdfs/$2.pdf -resize 50% $DIR/data/pngs/images_%d.png
 		# gs -dNOPAUSE -g3000x6000 -dBATCH -o $DIR/data/tiffs/$2-%03d.tif -sDEVICE=tiff32nc -r300x300 $DIR/data/pdfs/$2.pdf > /dev/null 2>&1
 
 		# Count of the pages scanned
-		SCAN_PAGE=1
+		PAGENUM=1
 
 		# Loop to iterate over the scans and do OCR on each.
 		for filename in $DIR/data/pngs/*.png; do
 			TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-			echo "$TIMESTAMP - Converting $filename to $2_$SCAN_PAGE" >> $LOGFILE
+			echo $PAGENUM
+			echo "$TIMESTAMP - Processing image file $filename" >> $LOGFILE
 
-			convert -crop 340x1240+0 filename $DIR/data/page_$SCAN_PAGE_names.png
-			convert -crop 415x1240+340 filename $DIR/data/page_$SCAN_PAGE_addresses.png
-			convert -crop 345x1240+755 filename $DIR/data/page_$SCAN_PAGE_occupations.png
-			convert -crop 100x1240+1100 filename $DIR/data/page_$SCAN_PAGE_fines.png
+			echo "$TIMESTAMP - Creating names image file names_$PAGENUM.png" >> $LOGFILE
+			convert -crop 340x1240+0 $filename $DIR/data/names_$PAGENUM.png
 
-			tesseract -l eng -c preserve_interword_spaces=1 $page_$SCAN_PAGE_names.png $DIR/data/txts/$2_$SCAN_PAGE_names /dev/null 2>&1
-			tesseract -l eng -c preserve_interword_spaces=1 $page_$SCAN_PAGE_addresses.png $DIR/data/txts/$2_$SCAN_PAGE_addresses /dev/null 2>&1
-			tesseract -l eng -c preserve_interword_spaces=1 $page_$SCAN_PAGE_occupations.png $DIR/data/txts/$2_$SCAN_PAGE_occupations /dev/null 2>&1
-			tesseract -l eng -c preserve_interword_spaces=1 $page_$SCAN_PAGE_fines.png $DIR/data/txts/$2_$SCAN_PAGE_fines /dev/null 2>&1
+#			echo "$TIMESTAMP - Creating addresses image file addresses_$PAGENUM.png" >> $LOGFILE
+#			convert -crop 415x1240+340 $filename $DIR/data/addresses_$PAGENUM.png
+#
+#			echo "$TIMESTAMP - Creating occupations image file page_$SCAN_PAGE_occupations.png" >> $LOGFILE
+#			convert -crop 345x1240+755 $filename $DIR/data/page_$SCAN_PAGE_occupations.png
+#
+#			echo "$TIMESTAMP - Creating fines image file page_$SCAN_PAGE_fines.png" >> $LOGFILE
+#			convert -crop 100x1240+1100 $filename $DIR/data/page_$SCAN_PAGE_fines.png
+
+			echo "$TIMESTAMP - Converting these image files to text at $2_names_$PAGENUM" >> $LOGFILE
+			tesseract -l eng -c preserve_interword_spaces=1 $DIR/data/names_$PAGENUM.png $DIR/data/txts/$2_names_$PAGENUM /dev/null 2>&1
+#			tesseract -l eng -c preserve_interword_spaces=1 $DIR/data/page_$SCAN_PAGE_addresses.png $DIR/data/txts/$2_$SCAN_PAGE_addresses /dev/null 2>&1
+#			tesseract -l eng -c preserve_interword_spaces=1 $DIR/data/page_$SCAN_PAGE_occupations.png $DIR/data/txts/$2_$SCAN_PAGE_occupations /dev/null 2>&1
+#			tesseract -l eng -c preserve_interword_spaces=1 $DIR/data/page_$SCAN_PAGE_fines.png $DIR/data/txts/$2_$SCAN_PAGE_fines /dev/null 2>&1
 
 			TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
-			echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE" >> $LOGFILE
-			echo "$TIMESTAMP - Finished processing $2.pdf, page $SCAN_PAGE"
-			((SCAN_PAGE++))
+			echo "$TIMESTAMP - Finished processing $2.pdf" >> $LOGFILE
+			echo "$TIMESTAMP - Finished processing $2.pdf"
+			((PAGENUM++))
 		done
 
 		# Now concat the output text files
 		# cat $DIR/data/txts/*.txt >> $DIR/data/$2_ocr.txt
 
-		rm $DIR/data/pngs/*.png
-		rm $DIR/data/*.png
+		#rm $DIR/data/pngs/*.png
+		#rm $DIR/data/*.png
 		# rm $DIR/data/txts/*.txt
 	fi
 

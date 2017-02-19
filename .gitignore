@@ -29,6 +29,9 @@
 
 # OS generated files #
 ######################
+.png
+.tif
+.tiff
 .DS_Store
 .DS_Store?
 ._*
