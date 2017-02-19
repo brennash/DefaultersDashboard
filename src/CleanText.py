@@ -13,14 +13,36 @@ class CleanText:
 	def __init__(self, inputFilename):
 
 		inputFile = open(inputFilename, 'rb')
-		for line in inputFile:
+		for index, line in enumerate(inputFile):
 			if self.validLine(line):
-				print line
+				name = self.getName(line)
+				print name
+
+
+
+	def getName(self, inputLine):
+
+		result = ''
+
+		if ' LTD ' in inputLine:
+			index = inputLine.index(' LTD ')
+			result = inputLine[0:index+5]
+		elif '   ' in inputLine:
+			index = inputLine.index('   ')
+			result = inputLine[0:index]
+		else:
+			tokens = inputLine.split()
+			result = (tokens[0] + tokens[1])
+
+		nameTokens = result.split()
+		if len(nameTokens) > 4 and ',' in result:
+
+		return result
 
 
 	def validLine(self, inputLine):
 		if '   ' in inputLine:
-			inputRegex = re.compile('^[A-Z0-9,&\' ]+$')
+			inputRegex = re.compile('^[A-Z,]+\s+')
 			if inputRegex.match(inputLine):
 				return True
 		return False
