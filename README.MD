@@ -1,6 +1,7 @@
 # Introduction
 The Tax Defaulters Dashboard is a simple Python Flask application which summarises and displays the various tax judgements and penalties 
-over the previous few years by the Tax and Customs department of the Republic of Ireland. 
+over the previous few years by the Tax and Customs department of the Republic of Ireland. Since the data is recorded as PDFs the text 
+must be extracted via OCR using the Tesseract library. 
 
 
 ## Setting up GitHub Access
@@ -14,9 +15,6 @@ ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
 No data is actually stored by the application, so you first need to download the appropriate datasets from the revenue authorities. To 
 speed this task up a bit, there's a BASH script located in the '''bin''' directory called '''download-data.sh''' which should retrieve
 the data and place it in the data sub-folder in the project. 
-
-
-
 
 ```
 	# Install the basics first
