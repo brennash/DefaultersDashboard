@@ -9,11 +9,26 @@ class Defaulter:
 		self.sentence     = ''
 		self.fine         = 0.0
 		self.numCharges   = 0
+		self.originalLine = line
 
 		self.setName(line)
 		self.setAddress(line)
 		self.setProfession(line)
 
+	def update(self, line):
+
+		startIndex = len(line) - len(line.lstrip())
+		if '  '  in line[startIndex:]:
+			endIndex   = line.index('  ', startIndex)
+		else:
+			endIndex = len(line)
+
+		if startIndex == 0:
+			tokens     = line.split('  ')
+			self.name  = self.name + ' ' + line[startIndex:endIndex]
+		else:
+			if startIndex == self.originalLine.index(self.address):
+				self.address  = self.address + ' ' + line[startIndex:endIndex]
 
 	def setName(self, line):
 		if line is None or len(line) == 0:
@@ -51,7 +66,7 @@ class Defaulter:
 				self.address = addressStr[0:validList[-1]].rstrip()
 
 	def setProfession(self, line):
-		
+
 		# Only set the profession if a valid name/address is already present
 		if self.name != '' and self.address != '':
 
@@ -59,7 +74,7 @@ class Defaulter:
 			index            = line.index(self.address)
 			addrLen          = len(self.address)
 			professionStr    = line[(index+addrLen):].lstrip().rstrip()
-					
+
 			if '  ' in professionStr:
 				tokens = professionStr.split('  ')
 				self.profession = tokens[0]
@@ -70,8 +85,22 @@ class Defaulter:
 					if index >= 5 and index <= 25:
 						validList.append(index)
 				self.profession = addressStr[0:validList[-1]].rstrip()
-		
 
+
+	def getStartIndex(self, line, startIndex):
+		charRegex = re.compile('[a-zA-Z0-9]')
+		for index, char in enumerate(line[startIndex:]):
+			if charRegex.match(char):
+				return (index+startIndex)
+		return -1
+
+	def getEndIndex(self, line, startIndex):
+		shortLine = line[startIndex:]
+		if '  ' in shortLine:
+			index = shortLine.index('  ')
+			return index
+		else:
+			return -1
 
 	def getName(self):
 		return self.name
