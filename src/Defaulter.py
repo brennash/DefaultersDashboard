@@ -29,6 +29,8 @@ class Defaulter:
 		else:
 			if startIndex == self.originalLine.index(self.address):
 				self.address  = self.address + ' ' + line[startIndex:endIndex]
+			elif startIndex == self.originalLine.index(self.profession):
+				self.profession = self.profession + ' ' + line[startIndex:endIndex]
 
 	def setName(self, line):
 		if line is None or len(line) == 0:
@@ -121,3 +123,8 @@ class Defaulter:
 			if char == targetChar:
 				indexList.append(index)	
 		return indexList
+
+	def isComplete(self):
+		if self.name != '' and self.address != '' and self.profession != '':
+			return True
+		return False
