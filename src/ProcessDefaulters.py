@@ -30,7 +30,7 @@ class ProcessDefaulters:
 		totalChars   = 0
 		startRegex   = re.compile('^[A-Z]+')
 
-		inputFile        = open(filename, 'rb')
+		inputFile    = open(filename, 'rb')
 		for index, line in enumerate(inputFile):
 			nonWSChars = self.getNonWhitespace(line)
 			charsPerLine.append(nonWSChars)
@@ -62,8 +62,10 @@ class ProcessDefaulters:
 			,'CLAIMING '
 			,'DELIVERING INCORRECT INCOME TAX RETURN(S)'
 			,'DELIVERING INCORRECT INCOME VAT RETURN(S)'
+			,'DELIVERING INCORRECT RCT RETURN(S)'
 			,'DELIVERING INCORRECT'
 			,'FAILURE TO HOLD CURRENT LIQUOR LICENCE'
+			,'FAILURE TO DELIVER STATEMENT OF AFFAIRS'
 			,'FAILURE TO LODGE INCOME TAX RETURN(S)'
 			,'FAILURE TO LODGE CORPORATION TAX RETURN(S)'
 			,'FAILURE TO LODGE VAT RETURN(S)'
