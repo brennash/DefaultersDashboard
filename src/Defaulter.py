@@ -24,24 +24,38 @@ class Defaulter:
 
 		if self.getSubString(line, nameIndexList) != '':
 			self.name = self.name + ' ' + self.getSubString(line, nameIndexList)
-		elif self.getSubString(line, addressIndexList) != '':
+		if self.getSubString(line, addressIndexList) != '':
 			self.address = self.address + ' ' + self.getSubString(line, addressIndexList)
-		elif self.getSubString(line, professionIndexList) != '':
+		if self.getSubString(line, professionIndexList) != '':
 			self.profession = self.profession + ' ' + self.getSubString(line, professionIndexList)
 
 	def getSubString(self, line, indexList):
 
-		try:
-			return line[indexList[0], indexList[1]]
-		except:
+		emptyString = re.compile('^\s+$')
+
+		if len(indexList) != 2:
 			return ''
+		else:
+			startIndex = indexList[0]
+			endIndex   = indexList[1]
+
+			try:
+				if startIndex != -1:
+					subString = line[startIndex:endIndex]
+					if emptyString.match(subString):
+						return ''
+					else:
+						return subString.lstrip().rstrip()
+				else:
+					return ''
+			except Exception, err:
+				return ''
 
 
 	def getIndex(self, searchTerm):
-
 		try:
-			startIndex = self.line.index(self.name)
-			endIndex   = len(self.name) + startIndex
+			startIndex = self.line.index(searchTerm)
+			endIndex   = len(searchTerm) + startIndex
 			return [startIndex, endIndex]
 		except ValueError:
 			return [-1, -1]
