@@ -17,10 +17,9 @@ class Defaulter:
 	def update(self, line):
 
 		nameIndexList = self.getIndex(self.name)
-		addressIndexList = self.getIndex(self.name)
-		professionIndexList = self.getIndex(self.name)
-		sentenceIndexList = self.getIndex(self.name)
-		fineIndexList = self.getIndex(self.name)
+		addressIndexList = self.getIndex(self.address)
+		professionIndexList = self.getIndex(self.profession)
+		sentenceIndexList = self.getIndex(self.sentence)
 
 		if self.getSubString(line, nameIndexList) != '':
 			self.name = self.name + ' ' + self.getSubString(line, nameIndexList)
