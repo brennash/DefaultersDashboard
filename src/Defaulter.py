@@ -22,7 +22,7 @@ class Defaulter:
 		sentenceIndexList = self.getIndex(self.sentence)
 
 		if self.getSubString(line, nameIndexList) != '':
-			self.name = self.name + ' ' + self.getSubString(line, nameIndexList)
+			self.name = self.getSubString(line, nameIndexList) + ' ' + self.name
 		if self.getSubString(line, addressIndexList) != '':
 			self.address = self.address + ' ' + self.getSubString(line, addressIndexList)
 		if self.getSubString(line, professionIndexList) != '':
