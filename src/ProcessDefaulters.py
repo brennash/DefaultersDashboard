@@ -7,43 +7,43 @@ import time
 import datetime
 import collections
 from sets import Set
+from Defaulter import Defaulter
 from optparse import OptionParser
 
 
 class ProcessDefaulters:
 
 	def __init__(self):
-		self.defaultersList = {}
+		self.defaulterList = []
 
 	def run(self, filename):
 		""" 
 		Reads the text and sets up the defaulters list
 		"""
 		self.readText(filename)
+		self.listDefaulters()
+
 
 	def readText(self, filename):
 		""" 
-		Read the CSV file into the list
+		Read the CSV file, initialize these as defaulter objects and
+		add the defaulter object to the list. 
 		"""
-		outputList   = []
-		charsPerLine = []
-		totalChars   = 0
-		startRegex   = re.compile('^[A-Z]+')
+		startRegex   = re.compile('^[A-Z-\']+[,]{1}\s+')
+		extraRegex   = re.compile('^\s*[A-Z0-9-,]')
 
 		inputFile    = open(filename, 'rb')
 		for index, line in enumerate(inputFile):
 			nonWSChars = self.getNonWhitespace(line)
-			charsPerLine.append(nonWSChars)
-			totalChars += nonWSChars
 
 			if nonWSChars > 50 and 'Name' not in line and startRegex.match(line):
-				print line
-			elif nonWSChars <= 50 and 'Name' not in line and startRegex.match(line):
-				print nonWSChars, line
-
+				defaulter = Defaulter(line)
+				self.defaulterList.append(defaulter)
+			elif nonWSChars <= 50 and 'Name' not in line and extraRegex.match(line) and not self.isCharge(line):
+				if len(self.defaulterList) > 0:
+					self.defaulterList[-1].update(line)
 			index += 1
 
-		print 'Average non-whitespace',(totalChars/index)
 
 	def getNonWhitespace(self, line):
 		wsRegex = re.compile('\s')
@@ -89,8 +89,16 @@ class ProcessDefaulters:
 
 		for charge in charges:
 			if charge in line:
-				return line.rstrip().lstrip()
-		return None
+				return True
+		return False
+
+
+	def listDefaulters(self):
+
+		for defaulter in self.defaulterList:
+			name    = defaulter.getName()
+			address = defaulter.getAddress()
+			print name, address
 
 def main(argv):
         parser = OptionParser(usage="Usage: ProcessDefaulters <text-filename>")

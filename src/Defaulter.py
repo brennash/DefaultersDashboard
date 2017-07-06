@@ -9,28 +9,42 @@ class Defaulter:
 		self.sentence     = ''
 		self.fine         = 0.0
 		self.numCharges   = 0
-		self.originalLine = line
-
+		self.line         = line
 		self.setName(line)
 		self.setAddress(line)
 		self.setProfession(line)
 
 	def update(self, line):
 
-		startIndex = len(line) - len(line.lstrip())
-		if '  '  in line[startIndex:]:
-			endIndex   = line.index('  ', startIndex)
-		else:
-			endIndex = len(line)
+		nameIndexList = self.getIndex(self.name)
+		addressIndexList = self.getIndex(self.name)
+		professionIndexList = self.getIndex(self.name)
+		sentenceIndexList = self.getIndex(self.name)
+		fineIndexList = self.getIndex(self.name)
 
-		if startIndex == 0:
-			tokens     = line.split('  ')
-			self.name  = self.name + ' ' + line[startIndex:endIndex]
-		else:
-			if startIndex == self.originalLine.index(self.address):
-				self.address  = self.address + ' ' + line[startIndex:endIndex]
-			elif startIndex == self.originalLine.index(self.profession):
-				self.profession = self.profession + ' ' + line[startIndex:endIndex]
+		if self.getSubString(line, nameIndexList) != '':
+			self.name = self.name + ' ' + self.getSubString(line, nameIndexList)
+		elif self.getSubString(line, addressIndexList) != '':
+			self.address = self.address + ' ' + self.getSubString(line, addressIndexList)
+		elif self.getSubString(line, professionIndexList) != '':
+			self.profession = self.profession + ' ' + self.getSubString(line, professionIndexList)
+
+	def getSubString(self, line, indexList):
+
+		try:
+			return line[indexList[0], indexList[1]]
+		except:
+			return ''
+
+
+	def getIndex(self, searchTerm):
+
+		try:
+			startIndex = self.line.index(self.name)
+			endIndex   = len(self.name) + startIndex
+			return [startIndex, endIndex]
+		except ValueError:
+			return [-1, -1]
 
 	def setName(self, line):
 		if line is None or len(line) == 0:
